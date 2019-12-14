@@ -51,14 +51,9 @@ services:
       #- MM_CONFIG=/mattermost/config/config.json
 
       - VIRTUAL_HOST=chat.diverstage.biz
-      - VIRTUAL_PORT=8000
       - LETSENCRYPT_HOST=chat.diverstage.biz
       - LETSENCRYPT_EMAIL=diverstage@gmail.com
 
-    ports:
-      - "8000:8000"
-    expose:
-      - "8000"
     networks:
       - app-net
 
