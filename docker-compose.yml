@@ -22,10 +22,11 @@ services:
       - app-net
 
   app:
-    build: app
+    build:
+      context: app
       # uncomment following lines for team edition or change UID/GID
-      # args:
-      #   - edition=team
+      args:
+        - edition=team
       #   - PUID=1000
       #   - PGID=1000
     restart: unless-stopped
@@ -48,6 +49,10 @@ services:
 
       # in case your config is not in default location
       #- MM_CONFIG=/mattermost/config/config.json
+
+      - LETSENCRYPT_HOST=chat.diverstage.biz
+      - LETSENCRYPT_EMAIL=diverstage@gmail.com
+
     networks:
       - app-net
 
