@@ -13,17 +13,15 @@ services:
       - POSTGRES_USER=mmuser
       - POSTGRES_PASSWORD=mmuser_password
       - POSTGRES_DB=mattermost
-    # uncomment the following to enable backup
-    #  - AWS_ACCESS_KEY_ID=XXXX
-    #  - AWS_SECRET_ACCESS_KEY=XXXX
-    #  - WALE_S3_PREFIX=s3://BUCKET_NAME/PATH
-    #  - AWS_REGION=us-east-1
+    networks:
+      - app-net
 
   app:
-    build: app
+    build:
+      context: app
       # uncomment following lines for team edition or change UID/GID
-      # args:
-      #   - edition=team
+      args:
+        - edition=team
       #   - PUID=1000
       #   - PGID=1000
     restart: unless-stopped
@@ -35,29 +33,54 @@ services:
       - ./volumes/app/mattermost/client-plugins:/mattermost/client/plugins:rw
       - /etc/localtime:/etc/localtime:ro
     environment:
-      # set same as db credentials and dbname
       - MM_USERNAME=mmuser
       - MM_PASSWORD=mmuser_password
       - MM_DBNAME=mattermost
-
-      # use the credentials you've set above, in the format:
-      # MM_SQLSETTINGS_DATASOURCE=postgres://${MM_USERNAME}:${MM_PASSWORD}@db:5432/${MM_DBNAME}?sslmode=disable&connect_timeout=10
       - MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mmuser_password@db:5432/mattermost?sslmode=disable&connect_timeout=10
+      - VIRTUAL_HOST=chat.diverstage.biz
+      - LETSENCRYPT_HOST=chat.diverstage.biz
+      - LETSENCRYPT_EMAIL=diverstage@gmail.com
+    networks:
+      - app-net
 
-      # in case your config is not in default location
-      #- MM_CONFIG=/mattermost/config/config.json
-
-  web:
-    build: web
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    restart: always
     ports:
       - "80:80"
       - "443:443"
-    read_only: true
-    restart: unless-stopped
     volumes:
-      # This directory must have cert files if you want to enable SSL
-      - ./volumes/web/cert:/cert:ro
-      - /etc/localtime:/etc/localtime:ro
-    # Uncomment for SSL
-    # environment:
-    #  - MATTERMOST_ENABLE_SSL=true
+      - html:/usr/share/nginx/html
+      - dhparam:/etc/nginx/dhparam
+      - vhost:/etc/nginx/vhost.d
+      - certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
+    networks:
+      - app-net
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: nginx-proxy-lets-encrypt
+    restart: always
+    depends_on:
+      - "nginx-proxy"
+    volumes:
+      - certs:/etc/nginx/certs:rw
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - app-net
+
+volumes:
+  certs:
+  html:
+  vhost:
+  dhparam:
+
+networks:
+  app-net:
+    driver: bridge
