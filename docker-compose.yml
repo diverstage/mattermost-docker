@@ -79,7 +79,7 @@ services:
     container_name: nginx-proxy-lets-encrypt
     restart: always
     depends_on:
-      - "nginx"
+      - "nginx-proxy"
     volumes:
       - certs:/etc/nginx/certs:rw
       - vhost:/etc/nginx/vhost.d
