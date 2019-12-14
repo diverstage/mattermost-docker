@@ -39,6 +39,9 @@ services:
       - DB_PORT_NUMBER=3306
       - MM_SQLSETTINGS_DRIVERNAME=mysql
       - MM_SQLSETTINGS_DATASOURCE=diverstage:pxQCT42KhMDK@tcp(db:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s
+      - MM_USERNAME=mmuser
+      - MM_PASSWORD=mmuser_password
+      - MM_DBNAME=mattermost
       - VIRTUAL_HOST=chat.diverstage.biz
       - LETSENCRYPT_HOST=chat.diverstage.biz
       - LETSENCRYPT_EMAIL=diverstage@gmail.com
